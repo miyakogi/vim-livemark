@@ -95,8 +95,9 @@ endfunction
 
 function! s:start_server() abort
   let l:options = ' --browser "' . g:livemark_browser . '"'
-        \     . ' --browser-port ' . g:livemark_browser_port
+        \     . ' --port ' . g:livemark_browser_port
         \     . ' --vim-port ' . g:livemark_vim_port
+        \     . ' --open-browser '
 
   if len(g:livemark_js_files) || !g:livemark_no_default_js
     let l:options .= ' --js-files'
