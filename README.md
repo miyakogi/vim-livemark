@@ -1,12 +1,12 @@
-# Livemark.vim
+# LiveMark.vim
 
 Real-time markdown preview plugin for vim.
 
 ## Requirements
 
-Latest Vim which has `+channel` **or** `+python` feature.
+Latest Vim which has `+channel` feature.
 
-Python 3.5+ and some libraries (misaka, pygments, tornado) are also required to be installed in your `$PATH`.
+Python 3.5+ and some libraries ([misaka](https://github.com/FSX/misaka), [pygments](http://pygments.org/), [tornado](https://github.com/tornadoweb/tornado)) are also required to be installed in your python.
 
 To install them:
 
@@ -14,23 +14,45 @@ To install them:
 pip3 install misaka pygments "tornado>=4"
 ```
 
-Thanks to the new channel feature, this plugin does not requre `+python`, `+python3`, or any other process control plugins.
-But if `+channel` is not available, this plugin uses `:python` for socket connection.
+Or,
+
+```
+python3 -m pip intsall misaka pygments "tornado>=4"
+```
 
 ## Install
 
 This plugin is using git submodule.
 
-If you are using [NeoBundle](https://github.com/Shougo/neobundle.vim) to manage plugins, it will automatically enable submodules by default. So you can install this plugin by simply adding `NeoBundle 'miyakogi/livemark.vim'` in your vimrc and then execute `:NeoBundleInstall`.
+If you are using [NeoBundle](https://github.com/Shougo/neobundle.vim) to manage plugins, it will automatically enable git submodules by default. So you can install this plugin by simply adding `NeoBundle 'miyakogi/livemark.vim'` in your vimrc and then execute `:NeoBundleInstall`.
 
 However, if you are using other plugin manager which does not support submodules, or installing manually, you need to update submodule after installation. To manually install this plugin, please execute `git clone --recursive https://github.com/miyakogi/livemark.vim`.
 
 ## Usage
 
 Open markdown file and execute `:LiveMark`.
-This command opens browser (google-chrome by default) and starts real-time previewing on browser.
+This command opens browser window and starts real-time preview.
 
 To stop previewing, execute `:LiveMarkDisable` command.
+
+### Theming
+
+By adding theme-name as an argument of the `:LiveMark` command, livemark change theme of the preview window.
+To see available themes, press `<Tab>` key after `:LiveMark ` on vim.
+Default theme is `skyblue`.
+
+Note: Former version supported use-define js/css files, but current version does not support this feature.
+
+### Scrolling Browser
+
+LiveMark.vim has **BrowserMode**.
+
+When execute `:LiveMarkBrowserMode`, some keys (`j/k/<C-d>/<C-u>/<C-f>/<C-b>/gg/G`) become to move browser window, not vim.
+To exit this mode, press `<Esc>` key or execute `:LiveMarkBrowserModeExit`.
+
+TODO: prepare screen cast.
+
+Note: Former version has *cursor sync* feature, but its removed now.
 
 ## Configuration
 
@@ -45,11 +67,11 @@ let g:livemark_python = '/path/to/python/binary'  " default 'python3'
 
 #### Browser
 
-By default, this plugin use `google-chrome` to show preview.
+By default, this plugin use system's default browser to show preview.
 To use other browser, for example, firefox, set `g:livemark_browser` variable in your vimrc.
 
 ```vim
-let g:livemark_browser = 'firefox'  "default: 'google-chrome'
+let g:livemark_browser = 'firefox'
 ```
 
 This value is passed to python's webbrowser module.
@@ -71,25 +93,20 @@ The following setting forces to use `python` to send markdown text, instead of `
 let g:livemark_force_pysocket = 1  "default: 0
 ```
 
-#### CSS/JS files
+#### Default theme
 
-By default, [Honoka](http://honokak.osaka/) bootstrap theme is used for preview. If you want to use other css/js, use these options.
-
-```vim
-let g:livemark_js_files = [expand('~/path/to/your/js_file.js')]     " default []
-let g:livemark_css_files = [expand('~/path/to/your/css_file.css')]  " default []
-```
-
-If you don't want to include defualt css/js files (jQuery, bootstrap.js and bootstrap.css), use these options.
+Default theme can change via `g:livemark_theme` option.
+The following setting change default theme to `bootstrap3`.
 
 ```vim
-let g:livemark_no_default_js = 1   " default 0
-let g:livemark_no_default_css = 1  " default 0
+let g:livemark_theme = "bootstrap3"
 ```
+
+This setting can be overridden by `:LiveMark` command's argument.
 
 #### Syntax highlighting
 
-Livemark.vim supports code blocks and syntax highlighting.
+LiveMark.vim supports code blocks and syntax highlighting.
 If you change theme of the code block, add the below option.
 
 ```vim
@@ -101,18 +118,6 @@ To list all available themes, run below command in shell.
 ```sh
 python3 -c "import pygments.styles; print(pygments.styles.STYLE_MAP.keys())"
 ```
-
-#### Disable cursor sync
-
-To disable auto scroll, add this in your vimrc
-
-```vim
-let g:livemark_disable_scroll = 1
-```
-
-## Screen cast
-
-<img src="https://raw.githubusercontent.com/miyakogi/livemark.vim/master/sample.gif">
 
 ## License
 

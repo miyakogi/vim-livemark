@@ -19,9 +19,22 @@ let g:livemark_no_default_js = get(g:, 'livemark_no_default_js', 0)
 let g:livemark_no_default_css = get(g:, 'livemark_no_default_css', 0)
 let g:livemark_js_files = get(g:, 'livemark_js_files', [])
 let g:livemark_css_files = get(g:, 'livemark_css_files', [])
+let g:livemark_theme = get(g:, 'livemark_theme', 'skyblue')
 let g:livemark_highlight_theme = get(g:, 'livemark_highlight_theme', '')
 
-command! LiveMark call livemark#enable_livemark()
+function! s:theme_complete(...) abort
+  let themes = [
+        \ 'baseguide', 'bijou', 'blaze', 'bootstrap3', 'bulma', 'concise',
+        \ 'foundation', 'furtive', 'groundwork', 'ink', 'kathamo', 'kube', 'mdl',
+        \ 'milligram', 'mui', 'papier', 'picnic', 'pure', 'schema', 'semantic',
+        \ 'siimple', 'skeleton', 'skyblue', 'spark', 'spectre', 'vital',
+        \ ]
+  return themes
+endfunction
+
+command! -nargs=? -complete=customlist,s:theme_complete LiveMark call livemark#enable_livemark("<args>")
 command! LiveMarkDisable call livemark#disable_livemark()
+command! LiveMarkBrowserMode call livemark#browser_mode()
+command! LiveMarkBrowserModeExit call livemark#browser_mode_exit()
 
 " vim set\ ts=2\ sts=2\ sw=2\ et

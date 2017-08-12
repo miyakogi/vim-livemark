@@ -6,6 +6,7 @@ let s:static_dir = s:root_dir . '/static'
 let s:pyscript = s:root_dir . '/plugin/run.py'
 let s:server_pid = 0
 let s:initialized_preview = 0
+let s:theme = ""
 
 function! s:send_by_channel(msg) abort
   let handle = ch_open('localhost:' . g:livemark_vim_port, {'mode': 'json', 'waittime': 3000, 'timeout': 0})
@@ -40,19 +41,56 @@ function! s:send(msg) abort
   endif
 endfunction
 
+function! livemark#move(cmd) abort
+  echo 'LiveMark Browser Mode: ' . a:cmd
+  let msg = {}
+  let msg.line = line('w0')
+  let msg.event = 'move'
+  let msg.command = a:cmd
+  call s:send(msg)
+endfunction
+
+noremap <Plug>LivemarkTop :call livemark#move('top')<CR>
+noremap <Plug>LivemarkBottom :call livemark#move('bottom')<CR>
+noremap <Plug>LivemarkUp :call livemark#move('up')<CR>
+noremap <Plug>LivemarkDown :call livemark#move('down')<CR>
+noremap <Plug>LivemarkPageUp :call livemark#move('page_up')<CR>
+noremap <Plug>LivemarkPageDown :call livemark#move('page_down')<CR>
+noremap <Plug>LivemarkHalfUp :call livemark#move('half_up')<CR>
+noremap <Plug>LivemarkHalfDown :call livemark#move('half_down')<CR>
+
+function! livemark#browser_mode() abort
+  nmap <buffer> gg <Plug>LivemarkTop
+  nmap <buffer> G  <Plug>LivemarkBottom
+  nmap <buffer> k  <Plug>LivemarkUp
+  nmap <buffer> j  <Plug>LivemarkDown
+  nmap <buffer> <C-u> <Plug>LivemarkHalfUp
+  nmap <buffer> <C-d> <Plug>LivemarkHalfDown
+  nmap <buffer> <C-b> <Plug>LivemarkPageUp
+  nmap <buffer> <C-f> <Plug>LivemarkPageDown
+  nnoremap <buffer><nowait> <Esc> :call livemark#browser_mode_exit()<CR>
+endfunction
+
+function! livemark#browser_mode_exit() abort
+  nunmap <buffer> gg
+  nunmap <buffer> G
+  nunmap <buffer> k
+  nunmap <buffer> j
+  nunmap <buffer> <C-u>
+  nunmap <buffer> <C-d>
+  nunmap <buffer> <C-b>
+  nunmap <buffer> <C-f>
+  nunmap <buffer> <Esc>
+  echo 'LiveMark Browser Mode Exit'
+endfunction
+
 function! livemark#move_cursor() abort
   if !s:initialized_preview
     call livemark#update_preview()
     let s:initialized_preview = 1
+    autocmd! livemark CursorMoved <buffer>
     return
   endif
-  if g:livemark_disable_scroll
-    return
-  endif
-  let msg = {}
-  let msg.line = line('w0')
-  let msg.event = 'move'
-  call s:send(msg)
 endfunction
 
 function! livemark#update_preview() abort
@@ -99,25 +137,10 @@ function! s:start_server() abort
         \     . ' --vim-port ' . g:livemark_vim_port
         \     . ' --open-browser '
 
-  if len(g:livemark_js_files) || !g:livemark_no_default_js
-    let l:options .= ' --js-files'
-    if !g:livemark_no_default_js
-      let l:options .= ' "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"'
-      let l:options .= ' "' . s:static_dir . '/bootstrap.min.js"'
-    for js in g:livemark_js_files
-      let l:options .= ' "' . js . '"'
-    endfor
-    endif
-  endif
-
-  if len(g:livemark_css_files) || !g:livemark_no_default_css
-    let l:options .= ' --css-files'
-    if !g:livemark_no_default_css
-      let l:options .= ' "' . s:static_dir . '/bootstrap.min.css"'
-    endif
-    for css in g:livemark_css_files
-      let l:options .= ' "' . css . '"'
-    endfor
+  if len(s:theme)
+    let l:options .= ' --theme "' . s:theme . '"'
+  elseif len(g:livemark_theme)
+    let l:options .= ' --theme "' . g:livemark_theme . '"'
   endif
 
   if len(g:livemark_highlight_theme)
@@ -154,9 +177,12 @@ function! s:check_features() abort
   return 0
 endfunction
 
-function! livemark#enable_livemark() abort
+function! livemark#enable_livemark(...) abort
   if s:check_features() | return | endif
   if s:check_pymodules() | return | endif
+  if len(a:000) > 0
+    let s:theme = a:1
+  endif
 
   if !has('channel') || g:livemark_force_pysocket
     call s:initialize_pysocket()
@@ -168,6 +194,7 @@ function! livemark#enable_livemark() abort
     autocmd VimLeave * call s:stop_server()
   augroup END
   call s:start_server()
+  let s:theme = ""
 endfunction
 
 function! livemark#disable_livemark() abort
